@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -fno-warn-unused-bind #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 
 module NanoParsec where
 
@@ -57,3 +57,70 @@ option p q = Parser $ \s ->
     case parse p s of
         []  -> parse q s
         res -> res
+
+{-some :: f a -> f [a]
+some v = some_v
+    where
+        many_v = some_v <|> pure []
+        some_v = (:) <$> v <*> many_v
+
+many :: f a -> f [a]
+many = many_v
+    where
+        many_v = some_v <|> pure []
+        some_v = (:) <$> v <*> many_v-}
+
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy p = item `bind` \c ->
+    if p c
+    then unit c
+    else failure
+
+oneOf :: [Char] -> Parser Char
+oneOf cs = satisfy (flip elem cs)
+
+chainl :: Parser a -> Parser (a -> a -> a) -> a -> Parser a
+chainl p op a = (p `chainl1` op) <|> unit a
+
+chainl1 :: Parser a -> Parser (a -> a -> a) -> Parser a
+p `chainl1` op = do {a <- p; rest a}
+    where
+        rest a = (do f <- op
+                     b <- p
+                     rest (f a b))
+            <|> return a
+
+char :: Char -> Parser Char
+char c = satisfy (==c)
+
+natural :: Parser Integer
+natural = read <$> some (satisfy isDigit)
+
+string :: String -> Parser String
+string []       = return []
+string (c:cs)   = do {char c; string cs; return (c:cs)}
+
+token :: Parser a -> Parser a
+token p = do {a <- p; spaces; return a}
+
+reserved :: String -> Parser String
+reserved s = token (string s)
+
+spaces :: Parser String
+spaces = many $ oneOf " \n\r"
+
+digit :: Parser Char
+digit = satisfy isDigit
+
+number :: Parser Int
+number = do
+    s   <- string "-" <|> unit []
+    cs  <- some digit
+    return $ read (s ++ cs)
+
+parens :: Parser a -> Parser a
+parens p = do
+    reserved "("
+    n <- p
+    reserved ")"
+    return n
