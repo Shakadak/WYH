@@ -41,7 +41,8 @@ run :: String -> Expr
 run = runParser expr
 
 main :: IO ()
-main = forever $ do
+main = forever (putStr "> " >> getLine >>= print . eval . run)
+{- main = forever $ do
     putStr "> "
     a <- getLine
-    print $ eval $ run a
+    print $ eval $ run a -}
