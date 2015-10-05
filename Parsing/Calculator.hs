@@ -17,7 +17,7 @@ eval expr = case expr of
     Lit n   -> n
 
 int :: Parser Expr
-int = number >>= \n -> return (Lit n)
+int = number >>= return . Lit
 
 expr :: Parser Expr
 expr = term `chainl1` addOp
