@@ -32,12 +32,12 @@ parens :: Parser a -> Parser a
 parens = Tok.parens lexer
 
 reserved :: String -> Parser ()
-reserved = Tok.Reserved lexer
+reserved = Tok.reserved lexer
 
 semiSep :: Parser a -> Parser [a]
 semiSep = Tok.semiSep lexer
 
-reserverdOp :: String -> Parser ()
+reservedOp :: String -> Parser ()
 reservedOp = Tok.reservedOp lexer
 
 prefixOp :: String -> (a -> a) -> Ex.Operator String () Identity a
@@ -48,7 +48,7 @@ table :: Ex.OperatorTable String () Identity Expr
 table = [
     [ prefixOp "succ" Succ
     , prefixOp "pred" Pred
-    , prefixOp "isZero" IsZero ]]
+    , prefixOp "iszero" IsZero ]]
 
 -- if/then/else
 ifthen :: Parser Expr
@@ -65,7 +65,7 @@ ifthen = do
 true, false, zero :: Parser Expr
 true    = reserved "true"   >> return Tr
 false   = reserved "false"  >> return Fl
-zero    = reservedOp "zero"   >> return Zero
+zero    = reservedOp "0"   >> return Zero
 
 expr :: Parser Expr
 expr = Ex.buildExpressionParser table factor
@@ -84,5 +84,5 @@ contents p = do
     eof
     return r
 
-parser :: String -> Either ParseError Expr
+parseExpr :: String -> Either ParseError Expr
 parseExpr s = parse (contents expr) "<stdin>" s
